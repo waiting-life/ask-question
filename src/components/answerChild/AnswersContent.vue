@@ -65,65 +65,7 @@
           <p class="AuthorAnswer-content">
             {{ answer.answer_content }}
           </p>
-          <!-- <button class="comment-btn" @click="getCommentsByAid(answer.answerId, index)">
-            点击获取评论列表
-          </button> -->
-          <button class="comment-btn" @click="showCommentBox(answer._id, index)">
-            <i class="el-icon-chat-round"></i>
-            <span>{{isCommentBoxVisible ? '收起评论' : `${comments_counts}条评论`}}</span>
-          </button>
-          <!-- <div class="AuthorAnswer-footer">
-            <button class="comment-btn" @click="showCommentBox(answer._id, index)" 
-              :class="{ShowCommentBtn: isCommentBoxVisible ? currentIndex === index :false}">
-              <i class="el-icon-chat-round"></i>
-              <span class="comments-counts">{{ comments_counts }} 条评论</span>
-            </button>
-            <button class="comment-btn comment-btn-two" @click="hiddenCommentBox"
-              :class="{HiddenCommentBtn: isCommentBoxVisible  ? currentIndex === index : false}">
-              <i class="el-icon-chat-round"></i>
-              <span class="comments-counts">收起评论</span>
-            </button>
-          </div> -->
-          <!-- 评论列表 -->
-          <div class="comments-container" 
-              v-if="currentIndex === index"
-              :class="{ CommentBoxVisible: isCommentBoxVisible ? currentIndex === index : false}">
-            <div class="comments-list">
-              <div class="comment-header">
-                <h4>{{ comments_counts }}条评论</h4>
-              </div>
-              <div class="comment-item" v-for="(comment, indey) in comments" :key="comment + indey">
-                <div class="CommentInfo">
-                  <div class="CommentatorInfo">
-                    <a href="#" class="Commentator-avatar" @click="toClickedUserPage(answer.userId)">
-                    <img src="~assets/image/唯.jpg" alt="">
-                  </a>
-                  <span @click="toClickedUserPage(answer.userId)" class="Commentator-nickname">{{ comment.comment_nickname}}</span>
-                  </div>
-                  <span class="comment-time">{{ new Date(comment.comment_time).toLocaleString() }}</span>
-                </div>
-                <div class="comment-content">
-                  <p>{{ comment.comment_content }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <el-form :model="commentInfo" class="submit-comment-container">
-            <el-form-item 
-              :rules="[
-                { required: true, message: '评论不能为空'}]"
-                class="comment-input-box">
-              <el-input
-                type="textarea"
-                placeholder="写下你的评论"
-                v-model="commentInfo.comment_content"
-                class="commment-input">
-              </el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="submitComment(commentInfo, answer)">发表评论</el-button>
-            </el-form-item>
-          </el-form>
+          <answer-comments :index="index" :answer="answer"/>
         </div>
       </div>
     </div>
@@ -135,7 +77,9 @@
 <script>
 import { mapState } from 'vuex'
 import bus from 'common/bus'
+import AnswerComments from './AnswerComments.vue'
 export default {
+  components: { AnswerComments },
   data () {
     return {
       answerInfo: {
@@ -147,17 +91,6 @@ export default {
       isAnswerboxVisible: false,
       allAnswers: [],
       answers_counts: 0,
-      isCommentBoxVisible: false,
-      commentInfo: {
-        comment_content: '',
-        comment_nickname: '',
-        answerId: '',
-        userId: ''
-      },
-      comments: [],
-      comments_counts: 0,
-      currentIndex: 0,
-      Aids: []
     }
   },
   computed: {
@@ -220,54 +153,6 @@ export default {
       this.$router.push({
         path: `/profile/${data._id}/dynamics`
       })
-    },
-    showCommentBox(Aid, index) {
-      // console.log(index)
-      console.log(Aid)
-      this.getCommentsByAid(Aid)
-      this.currentIndex = index
-      this.isCommentBoxVisible = !this.isCommentBoxVisible
-      // console.log(Aid)
-    },
-    hiddenCommentBox() {
-      this.isCommentBoxVisible = false
-    },
-    async submitComment(commentInfo, answer) {
-      // console.log(answer)
-      commentInfo.answerId = answer._id
-      commentInfo.comment_nickname = this.userInfo.nickname
-      commentInfo.userId = this.userInfo.user_id
-       try {
-        const res = await fetch('/addCommentByAid', {
-          method: 'POST',
-          body: JSON.stringify(commentInfo),
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8'
-          }
-        })
-        await res.json()
-        this.getCommentsByAid()
-        this.$message.success("评论发布成功")
-      } catch {
-        this.$message.error('评论失败');
-      }
-    },
-    async getCommentsByAid(Aid) {
-      try {
-        const res = await fetch('/getCommentsByAid', {
-          method: 'POST',
-            body: JSON.stringify({answerId: Aid}),
-            headers: {
-              'Content-Type': 'application/json; charset=utf-8'
-            }
-        })
-        const { data } = await res.json()
-        this.comments = data
-        this.comments_counts = this.comments.length
-        // console.log(data)
-      } catch {
-        this.$message.error('获取评论出错')
-      }
     }
   }
 }
@@ -426,75 +311,5 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.comment-btn {
-  color: #8590a6;
-  margin-left: 24px;
-  font-size: 14px;
-}
-.comment-btn i{
-  margin-right: 5px;
-}
-/* .ShowCommentBtn {
-  display: none;
-} */
-/* .comment-btn-two {
-  display: none;
-} */
-/* .AuthorAnswer-footer .HiddenCommentBtn {
-  display: block;
-} */
-/* 评论模块 */
-.comments-container {
-  display: none;
-  margin-top: 12px;
-  border-radius: 4px;
-  box-shadow: rgb(18 18 18 / 10%) 0px 1px 3px;
-  border: 1px solid rgb(235, 235, 235);
-}
-.CommentBoxVisible {
-  display: block;
-}
-.comment-header {
-  height: 50px;
-  line-height: 50px;
-  font-weight: 600;
-  padding: 0 20px;
-}
-.CommentInfo {
-  display: flex;
-  justify-content: space-between;
-}
-.CommentatorInfo {
-  display: flex;
-}
-
-.Commentator-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 2px;
-  overflow: hidden;
-  margin-right: 5px;
-}
-.Commentator-nickname {
-  font-weight: 500;
-}
-.Commentator-avatar img {
-  width: 24px;
-  height: 24px;
-  vertical-align: middle;
-}
-.comment-item {
-  padding: 16px 20px;
-}
-/* 发表评论模块 */
-.submit-comment-container {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-.commment-input {
-  width: 500px;
-
 }
 </style>
