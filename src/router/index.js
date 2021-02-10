@@ -21,6 +21,10 @@ const ProfileColumn = () => import('components/profile/ProfileColumn')
 const ProfilePin = () => import('components/profile/ProfilePin')
 const ProfileCollection = () => import('components/profile/ProfileCollection')
 const ProfileFollowing = () => import('components/profile/ProfileFollowing')
+
+// 回答组件
+const Answers = () => import('views/AnswerDetail')
+// const AnswersContent = () => import('components/answerChild/AnswersContent')
 Vue.use(VueRouter)
 // vuerouter更新后出现得问题  解决方法 https://my.oschina.net/u/4390738/blog/4547080
 const originalPush = VueRouter.prototype.push
@@ -116,6 +120,17 @@ const routes = [
         component: ProfileFollowing
       },
     ]
+  },
+  {
+    path: '/answers/:id',
+    name: 'answers',
+    component: Answers,
+    // children: [
+    //   {
+    //     path: '/answers',
+    //     component: AnswersContent
+    //   }
+    // ]
   },
   {
     path: '/login',

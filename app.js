@@ -3,8 +3,10 @@ const Koa = require('koa')
 const router = require('koa-router')()
 const app = new Koa()
 const User = require('./server/user')
-const Comment = require('./server/comments')
+const Question = require('./server/questions')
 const Search = require('./server/search')
+const Answer = require('./server/answers')
+const Comment = require('./server/comments')
 const body = require('koa-body')
 const static = require('koa-static')
 app.use(async (ctx, next)=> {
@@ -150,7 +152,7 @@ router
     // 添加问题
     const body = ctx.request.body
     try {
-      await new Comment(body).save()
+      await new Question(body).save()
       ctx.body = {
         err_code: 0,
         message: '提问成功！',
@@ -164,7 +166,7 @@ router
   })
   .get('/allQuestions', async ctx => {
     // 获取所有问题接口
-    let data = await Comment.find()
+    let data = await Question.find()
     ctx.body = {
       err_code: 0,
       message: 'Ok',
@@ -175,8 +177,8 @@ router
     // 删除问题接口
     const body = ctx.request.body
     try {
-      const data = await Comment.findOne(body)
-       await Comment.remove(data)
+      const data = await Question.findOne(body)
+       await Question.remove(data)
        ctx.body = {
          err_code: 0,
          message: '删除成功'
@@ -264,8 +266,103 @@ router
       }
     }
   })
+  // 根据id获取问题
+  .post('/getQuestionById', async ctx => {
+    const body = ctx.request.body
+    try {
+      const question_id = body.question_id
+      const data = await Question.findById(question_id)
+      if (data) {
+        ctx.body = {
+          err_code: 0,
+          message: 'Ok',
+          data: data
+        }
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  // 添加回答
+  .post('/addAnswer', async ctx => {
+    const body = ctx.request.body
+    try {
+      await new Answer(body).save()
+      ctx.body = {
+        err_code: 0,
+        message: '回答成功！',
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  // 获取回答列表
+  .post('/getAnswersByQid', async ctx => {
+    const body = ctx.request.body
+    // console.log(body)
+    try {
+      const questionId = body.question_id
+      // console.log(questionId)
+      const data = await Answer.find({ questionId: questionId})
+      if (data) {
+        ctx.body = {
+          data: data,
+          err_code: 0,
+          message: 'Ok'
+        }
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+
+  // 评论接口部分
+  .post('/addCommentByAid', async ctx => {
+    const body = ctx.request.body
+    // console.log(body)
+    try {
+      await new Comment(body).save()
+      ctx.body = {
+        err_code: 0,
+        message: '评论添加成功'
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  // 根据回答id获取评论列表接口
+  .post('/getCommentsByAid', async ctx => {
+    const body = ctx.request.body
+    // console.log(body)
+    try {
+      const answerId = body.answerId
+      const data = await Comment.find({ answerId: answerId })
+      console.log(data)
+      ctx.body = {
+        data: data,
+        err_code: 0,
+        message: 'Ok'
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
 app
   .use(router.routes())
   .use(router.allowedMethods())
-
 app.listen(3000)

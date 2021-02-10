@@ -5,14 +5,14 @@
         :key="index+item" 
         :currentIndex = index 
         class="question-item">
-        <div class="question-title">
+        <div class="question-title" @click="toAnswersById(item._id)">
           <a>{{ item.title }}</a>
         </div>
-        <div class="question-content">{{ item.content }}</div>
+        <div class="question-content" @click="readFullArticle">{{ item.content }}</div>
         <div class="question-info">         
           <div>
             <a @click="toClickedUserPage(item.userId)">{{ item.nickname }}</a>
-            <span>留言于：{{ new Date(item.createTime).toLocaleString() }}</span>
+            <span>提问于：{{ new Date(item.createTime).toLocaleString() }}</span>
           </div>
           <div class="btns" v-if="item.nickname === nickname">
             <el-button 
@@ -33,7 +33,7 @@ import { mapState, mapActions } from 'vuex'
 export default {
   data() {
     return {
-      
+      questionId: ''
     }
   },
   computed: mapState({
@@ -79,14 +79,24 @@ export default {
     async toClickedUserPage(userId) {
       const res = await fetch('/getUserById', {
         method: 'POST',
-          body: JSON.stringify({user_id: userId}),
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8'
-          }
+        body: JSON.stringify({user_id: userId}),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
       })
       const { data } = await res.json()
       this.$router.push({
         path: `/profile/${data._id}/dynamics`
+      })
+    },
+    readFullArticle() {
+      console.log(this)
+    },
+    toAnswersById(question_id) {
+      // console.log(question_id)
+      // console.log(this.questionsInfo)
+      this.$router.push({
+        path: `/answers/${question_id}`
       })
     }
   },
@@ -111,7 +121,17 @@ export default {
   }
   .question-content {
     font-size: 16px;
+    height: 42px;
+    cursor: pointer;
     text-indent: 2em;
+    /* 1.溢出的部分隐藏起来 */
+    overflow: hidden;
+    /* 2.溢出的时候用省略号代替 */
+    text-overflow: ellipsis;
+    /* 3. 弹性伸缩盒子模型显示 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
   .question-item {
     border-bottom: 1px solid #f6f6f6;

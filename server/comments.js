@@ -7,19 +7,17 @@ const commentSchema = new Schema({
   userId: {
     type: String,
   },
-  nickname: {
+  answerId: {
+    type: String
+  },
+  comment_nickname: {
+    type: String
+  },
+  comment_content: {
     type: String,
     required: true
   },
-  title: {
-    type: String,
-    required: true
-  },
-  content: {
-    type: String,
-    required: true
-  },
-  createTime: {
+  comment_time: {
     type: Date,
     required: true,
     default: Date.now
