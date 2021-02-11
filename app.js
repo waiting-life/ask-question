@@ -349,7 +349,7 @@ router
     try {
       const answerId = body.answerId
       const data = await Comment.find({ answerId: answerId })
-      console.log(data)
+      // console.log(data)
       ctx.body = {
         data: data,
         err_code: 0,

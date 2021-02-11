@@ -2,11 +2,11 @@
   <div class="question-header">
     <div class="question-header-content">
       <div class="question-header-main">
-        <div class="tags-list">
+        <!-- <div class="tags-list">
           <ul>
-            <li><button>日本动漫</button></li>
+            <li><button>标签</button></li>
           </ul>
-        </div>
+        </div> -->
         <div>
           <h1 class="question-header-title">{{ currentQuestion.title}}</h1>
           <div class="question-header-text">
