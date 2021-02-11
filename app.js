@@ -328,7 +328,7 @@ router
   // 评论接口部分
   .post('/addCommentByAid', async ctx => {
     const body = ctx.request.body
-    // console.log(body)
+    console.log(body)
     try {
       await new Comment(body).save()
       ctx.body = {

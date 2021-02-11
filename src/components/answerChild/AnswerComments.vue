@@ -1,8 +1,8 @@
 <template>
   <div class="answer-comments-container">
-    <button class="comment-btn" @click="showCommentBox(answer.answerId, index)">
+    <button class="comment-btn" @click="showCommentBox(answer._id,index)">
       <i class="el-icon-chat-round"></i>
-      <span>{{isCommentBoxVisible ? '收起评论' : `${comments_counts}条评论`}}</span>
+      <span>{{ isCommentBoxVisible ? '收起评论' : `${comments_counts}条评论` }}</span>
     </button>
     <div class="comments-container" 
         v-if="isCommentBoxVisible">
@@ -39,7 +39,7 @@
         </el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitComment(commentInfo, answer.answerId)">发表评论</el-button>
+        <el-button type="primary" @click="submitComment(commentInfo, answer._id)">发表评论</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -79,10 +79,12 @@ export default {
   created () {
     this.getCommentsByAid(this.answer._id)
   },
+  
   methods: {
-    showCommentBox(index) {
+    showCommentBox(answerId, index) {
       this.currentIndex = index
       this.isCommentBoxVisible = !this.isCommentBoxVisible
+      this.getCommentsByAid(answerId)
     },
     async getCommentsByAid(answerId) {
       try {
@@ -114,8 +116,9 @@ export default {
           }
         })
         await res.json()
-        this.getCommentsByAid(answerId)
         this.$message.success("评论发布成功")
+        this.getCommentsByAid(answerId)
+        this.commentInfo.comment_content = ''
       } catch {
         this.$message.error('评论失败');
       }
