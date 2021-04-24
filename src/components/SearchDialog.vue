@@ -1,58 +1,60 @@
 <template>
   <div class="search-model">
-    <div class="search-box" :class="{active: isActive}">
+    <div class="search-box" :class="{ active: isActive }">
       <div class="search-input">
         <input type="input-text" 
              placeholder="搜索你感兴趣的内容..." 
              @focus="selectSearch"
              @blur="cancelSearch"
-             v-model="inputSearch"
-             @keyup.enter="searchMessage(inputSearch)"
-             @input="filterSearch(inputSearch)">
+             v-model="searchContent"
+             @keyup.enter="searchMessage(searchContent)"
+             >
+             <!-- @input="filterSearch(searchContent)" -->
       </div>
       <div class="serach-icon" 
-           @click="searchMessage(inputSearch)" 
-           :class="{iconBgcolor: inputSearch ? true : false}">
+           @click="searchMessage(searchContent)" 
+           :class="{iconBgcolor: searchContent ? true : false}">
         <i class="el-icon-search"></i>
       </div>
     </div>
     <div class="search-dialog" :class="{searchDialogActive: isSearchDialogShow}">
-      <div class="hot-search">
-      <div class="title">
-        <div class="title-text">热搜</div>
-      </div>
-      <div class="hot-title">
+      <!-- <div class="hot-search">
+        <div class="title">
+          <div class="title-text">热搜</div>
+        </div>
+        <div class="hot-title">
+          <ul>
+            <li v-for="(item, index) in hotSearchs" 
+                :key="item+index"
+                @click="addSearch(item)">
+              <a href="">{{ item }}</a>
+            </li>
+          </ul>
+        </div>
+      </div> -->
+      <div class="search-history">
+        <div class="title">
+          <div class="title-text title-hitory">
+            <span>搜索历史</span>
+              <div class="delete-search" @click="deleteAll">
+                <i class="el-icon-delete"></i>
+                <span>清空</span>
+              </div>
+          </div>
+        </div>
         <ul>
-          <li v-for="(item, index) in hotSearchs" 
-              :key="item+index"
-               @click="addSearch(item)">
-            <a href="">{{ item }}</a>
+          <li v-for="(item, indey) in searchHistory" 
+            :key="item+indey">
+            <div @click="searchMessage(item)">{{ item }}</div>
+            <span @click="deleteOne(indey)"><i class="el-icon-close"></i></span>
           </li>
         </ul>
       </div>
     </div>
-    <div class="search-history">
-      <div class="title">
-        <div class="title-text title-hitory">
-          <span>搜索历史</span>
-            <div class="delete-search" @click="deleteAll">
-              <i class="el-icon-delete"></i>
-              <span>清空</span>
-            </div>
-        </div>
-      </div>
-      <ul>
-        <li v-for="(item, indey) in searchHistory" 
-          :key="item+indey">
-          <div>{{ item.searchHistory[0] }}</div>
-          <span @click="deleteOne(item.searchHistory[0])"><i class="el-icon-close"></i></span>
-        </li>
-      </ul>
-    </div>
-    </div>
   </div>
 </template>
 <script>
+import { mapState } from 'vuex'
 export default {
   data() {
     return {
@@ -61,14 +63,15 @@ export default {
       searchHistory: [],
       isSearchDialogShow: false,
       isActive: false,
-      inputSearch: '',
-      bgColor: false
+      searchContent: '',
+      bgColor: false,
     }
   },
   created() {
-    this.getSearchs()
+    // this.getSearchs()
   },
   computed: {
+    ...mapState(['questionsInfo'])
   },
   methods: {
     selectSearch() {
@@ -83,63 +86,49 @@ export default {
       }, 300);
       this.$emit('inputBlur')
     },
-    async addSearch(searchHistory) {
-      // const res = await fetch(`/addSearchHistory?searchHistory=${item}`)
-      await fetch('/addSearchHistory', {
-        method: 'POST',
-        body: JSON.stringify({
-          searchHistory
-        }),
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8'
-        }
-      })  
-      // this.isShow = false
-      this.getSearchs()
+    addSearch(history) {
+      this.searchHistory.push(history)
+      this.searchHistory = [...new Set(this.searchHistory)]
     },
-    async getSearchs() {
-      const res = await fetch('/getSearchs')
-      const result = await res.json()
-      this.hotSearchs = result.data.hotSearchs
-      this.copyHotSearchs = result.data.hotSearchs
-      this.searchHistory = result.data.searchHistory
+    deleteAll() {
+      this.searchHistory = []
+      // await fetch('/deleteSearchAll', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json; charset=utf-8'
+      //   }
+      // })
     },
-    async deleteAll() {
-      await fetch('/deleteSearchAll', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8'
-        }
-      })
-      this.getSearchs()
+    deleteOne(indey) {
+      this.searchHistory.splice(indey, 1)
+      // await fetch('/deleteSearchOne', {
+      //   method: 'POST',
+      //   body: JSON.stringify({
+      //     searchHistory: item
+      //   }),
+      //   headers: {
+      //     'Content-Type': 'application/json; charset=utf-8'
+      //   }
+      // })
     },
-    async deleteOne(item) {
-      await fetch('/deleteSearchOne', {
-        method: 'POST',
-        body: JSON.stringify({
-          searchHistory: item
-        }),
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8'
-        }
-      })
-      this.getSearchs()
-    },
-    searchMessage(searchHistory) {
-      if (searchHistory === '') {
+    async searchMessage(searchContent) {
+      if (searchContent === '') {
         return
       } else {
-        this.addSearch(searchHistory)
-        this.inputSearch = ''
-      }
-    },
-    filterSearch(inputValue) {
-      if (inputValue !== '') {
-        this.hotSearchs = this.copyHotSearchs.filter(item => {
-          return item.includes(inputValue)
+        this.addSearch(searchContent)
+        this.$router.push({
+          path: `/search?keywords=${searchContent}`
         })
+        this.searchContent = ''
       }
     },
+    // filterSearch(inputValue) {
+    //   if (inputValue !== '') {
+    //     this.hotSearchs = this.copyHotSearchs.filter(item => {
+    //       return item.includes(inputValue)
+    //     })
+    //   }
+    // },
   }
 }
 </script>

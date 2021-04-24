@@ -15,7 +15,7 @@
               <el-input
                 type="textarea"
                 placeholder="写回答"
-                v-model="answerInfo.answer_content"
+                v-model="answerInfo.content"
                 rows="10"
                 >
               </el-input>
@@ -49,11 +49,14 @@
           <header>
             <div class="AuthorInfo">
               <div class="Author-avatar">
-                <a href="" @click="toClickedUserPage(answer.userId)"><img src="~assets/image/lgAvator.jpg" alt=""></a>
+                <a href="" @click="toClickedUserPage(answer.userId)">
+                  <img :src="answer.avatarUrl">
+                </a>
               </div>
               <div class="Author-text">
-                <a href="#" class="AuthorInfo-name" @click="toClickedUserPage(answer.userId)">{{ answer.answer_nickname }}</a>
-                <div class="Author-signature">吃饭、睡觉、打豆豆</div>
+                <a href="#" class="AuthorInfo-name" @click="toClickedUserPage(answer.userId)">{{ answer.nickname }}</a>
+                <!-- =-= -->
+                <div class="Author-signature">{{ answer.signature }}</div>
               </div>
             </div>
             <!-- <div class="Approval-times">
@@ -62,9 +65,10 @@
               </button>
             </div> -->
           </header>
-          <p class="AuthorAnswer-content">
-            {{ answer.answer_content }}
-          </p>
+          <div class="AuthorAnswer-content">
+            {{ answer.content }}
+            <el-button type="danger" @click="deleteAnswer(answer)" size="small" v-if="answer.userId === userInfo.user_id">删除回答</el-button>
+          </div>
           <answer-comments :index="index" :answer="answer"/>
         </div>
       </div>
@@ -83,10 +87,12 @@ export default {
   data () {
     return {
       answerInfo: {
-        answer_content: '',
-        answer_nickname: '',
+        content: '',
+        nickname: '',
         userId: '',
-        questionId: ''
+        questionId: '',
+        title: '',
+        avatarUrl: ''
       },
       isAnswerboxVisible: false,
       allAnswers: [],
@@ -97,6 +103,7 @@ export default {
     ...mapState(['userInfo'])
   },
   created() {
+    this.getQuestion()
     this.getAnswersByQid()
   },
   mounted() {
@@ -107,18 +114,23 @@ export default {
   methods: {
     async addAnswer(answerInfo) {
       answerInfo.userId = this.userInfo.user_id
-      answerInfo.answer_nickname = this.userInfo.nickname
+      answerInfo.nickname = this.userInfo.nickname
       answerInfo.questionId = this.$route.params.id
-      // console.log(answerInfo)
+      answerInfo.signature = this.userInfo.signature
+      answerInfo.avatarUrl = this.userInfo.avatarUrl
+      if(answerInfo.content === '') {
+        this.$message.error('回答不能为空')
+        this.isAnswerboxVisible = false
+        return false
+      }
       try {
-        const res = await fetch('/addAnswer', {
+        await fetch('/addAnswer', {
           method: 'POST',
           body: JSON.stringify(answerInfo),
           headers: {
             'Content-Type': 'application/json; charset=utf-8'
           }
         })
-        await res.json()
         this.getAnswersByQid()
         this.$message.success("回答发布成功")
         this.isAnswerboxVisible = false
@@ -126,9 +138,18 @@ export default {
         this.$message.error('回答不能为空');
       }
     },
+    async getQuestion() {
+      const { data } = await fetch('/getQuestionById', {
+        method: 'POST',
+        body: JSON.stringify({question_id: this.$route.params.id}),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        }
+      }).then(res => res.json())
+      this.answerInfo.title = data.title
+    },
     async getAnswersByQid() {
       const questionId = this.$route.params.id
-      // console.log(questionId)
       const res = await fetch('/getAnswersByQid', {
         method: 'POST',
         body: JSON.stringify({question_id: questionId}),
@@ -139,7 +160,6 @@ export default {
       const { data } = await res.json()
       this.allAnswers = data
       this.answers_counts = data.length
-      // console.log(this.allAnswers)
     },
     async toClickedUserPage(userId) {
       const res = await fetch('/getUserById', {
@@ -153,6 +173,34 @@ export default {
       this.$router.push({
         path: `/profile/${data._id}/dynamics`
       })
+    },
+    async deleteAnswer(answer) {
+      try {
+        await this.$confirm('是否要删除回答?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        const res = await fetch('/deleteAnswer', {
+          method: 'POST',
+          body: JSON.stringify({ id: answer._id }),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          }
+        })
+        const result = res.json()
+        const code = result.err_code
+        if (code === 0) {
+          this.$message.success('删除成功')
+        }
+        this.getAnswersByQid()
+        this.$message.success('删除成功')
+      } catch {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      }
     }
   }
 }
@@ -311,5 +359,12 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.AuthorAnswer-content {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

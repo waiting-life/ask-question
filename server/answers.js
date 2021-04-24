@@ -1,19 +1,26 @@
 const mongoose = require('mongoose')
-// 连接数据库
-mongoose.connect('mongodb://localhost/message', {useNewUrlParser: true, useUnifiedTopology: true});
-const Schema = mongoose.Schema
 
-const answerSchema = new Schema({
+const answerSchema = new mongoose.Schema({
  questionId: {
    type: String
  },
  userId: {
    type: String
  },
- answer_nickname: {
+  signature: {
   type: String
  },
- answer_content: {
+ title: {
+  type: String,
+  required: true
+ },
+ avatarUrl: {
+   type: String
+ },
+nickname: {
+  type: String
+ },
+ content: {
    type: String,
    required: true
  },
@@ -28,6 +35,11 @@ const answerSchema = new Schema({
    type: Number,
    default: 0
  }
+}, {
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
+  }
 })
 
 module.exports = mongoose.model('Answer', answerSchema)

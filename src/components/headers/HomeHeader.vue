@@ -2,7 +2,6 @@
   <div class="header">
     <div class="header-content">
       <div class="header-logo">
-        <span>留言吧</span>
       </div>
       <home-header-nav class="header-left"/>
       <search-dialog class="header-center" @inputFocus="listenInputFocus" @inputBlur="listenInputBlur"/>
@@ -14,21 +13,24 @@
       </el-button>
       <div class="header-right">
         <div class="right-item profile-info" v-if="isLogin">
-          <el-dropdown split-button>
-            用户信息
+          <el-dropdown >
+            <div class="user">
+              <div class="user-avatar">
+                <img :src="userInfo.avatarUrl"/>
+              </div>
+              <span>{{ userInfo.nickname }}</span>
+            </div>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <span>当前登录用户 {{ nickname }}</span>
+                <span>当前登录用户 {{ userInfo.nickname }}</span>
               </el-dropdown-item>
               <el-dropdown-item @click.native = "toProfilePage">
                 <span>个人主页</span>
               </el-dropdown-item>
-              <el-dropdown-item @click.native = "toSettingPage">
-                <span>设置</span>
-              </el-dropdown-item>
               <el-dropdown-item @click.native="logOut">退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
+          
         </div>
       </div>
     </div>
@@ -51,14 +53,9 @@ export default {
       cookie: ''
     }
   },
-  computed: mapState({
-    nickname() {
-      return this.$store.state.userInfo.nickname    
-    },
-    userId() {
-      return this.$store.state.userInfo.user_id
-    }
-  }),
+  computed: {
+    ...mapState(['userInfo'])
+  },
   created() {
     this.getUser()
     function throttle (fn, time = 1000) {
@@ -82,6 +79,9 @@ export default {
     }, 200))
     this.isLogined()
   },
+  updated() {
+    this.getUser()
+  },
   methods: {
     async getUser() {
       // 获取cookie值，cookie一般为id
@@ -104,18 +104,16 @@ export default {
         }
       })
       const { data } = await res.json()
-      const nickname = data.nickname
-      const user = {
-        nickname,
-        user_id
-      }
-      this.$store.commit('getUserInfo', user)
+      // console.log(data)
+      // const nickname = data.nickname
+      // const user = {
+      //   nickname,
+      //   user_id
+      // }
+      this.$store.commit('getUserInfo', data)
     },
     toProfilePage() {
-      this.$router.push(`/profile/${this.userId}`)
-    },
-    toSettingPage() {
-      this.$router.push('/setting')
+      this.$router.push(`/profile/${this.userInfo.user_id}`)
     },
     showAskDialog() {
       this.$store.commit('showAskDialog')
@@ -203,5 +201,22 @@ export default {
   } 
   .header-right {
     margin-left: 15px;
+  }
+  .user {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-right: 10px;
+  }
+  .user-avatar img {
+    width: 40px;
+    height: 40px;
   }
 </style>

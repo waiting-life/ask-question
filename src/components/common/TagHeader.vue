@@ -21,30 +21,30 @@ export default {
           name: 'dynamics',
           title: '动态'
         },
-        {
-          name: 'answers',
-          title: '回答'
-        },
-        {
-          name: 'videos',
-          title: '视频'
-        },
-        {
+         {
           name: 'asks',
           title: '提问'
         },
         {
+          name: 'myanswers',
+          title: '回答'
+        },
+        // {
+        //   name: 'videos',
+        //   title: '视频'
+        // },
+        {
           name: 'posts',
           title: '文章'
         },
-        {
-          name: 'columns',
-          title: '专栏'
-        },
-        {
-          name: 'pins',
-          title: '想法'
-        },
+        // {
+        //   name: 'columns',
+        //   title: '专栏'
+        // },
+        // {
+        //   name: 'pins',
+        //   title: '想法'
+        // },
         {
           name: 'collections',
           title: '收藏'
@@ -71,7 +71,10 @@ export default {
   }
 }
 </script>
-<style scoped>
+<style scoped> 
+  .comment-header {
+    background-color: #fff;
+  }
   .comment-header ul {
     border-bottom: 1px solid #f6f6f6;
     height: 60px;

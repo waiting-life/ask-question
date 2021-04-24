@@ -3,13 +3,15 @@
     <profile-header class="profile-header" />
     <profile-info class="profile-info" />
     <div class="profile-about">
-     <div class="profile-about-left">
-        <tag-header />
-        <router-view />
-     </div>
-     <div class="profile-about-right">
-       lallala1
-     </div>
+      <keep-alive>
+        <div class="profile-about-left">
+          <tag-header />
+          <router-view />
+        </div>
+      </keep-alive>
+      <!-- <div class="profile-about-right">
+        lallala1
+      </div> -->
     </div>
   </div>
 </template>
@@ -17,20 +19,17 @@
 import TagHeader from 'components/common/TagHeader'
 import ProfileHeader from 'components/headers/ProfileHeader'
 import ProfileInfo from 'components/ProfileInfo'
+
 export default {
   components: { 
     TagHeader,
     ProfileHeader,
-    ProfileInfo, 
+    ProfileInfo,
   },
   data() {
     return {
      
     }
-  },
-  created() {
-  },
-  methods: {
   }
 }
 </script>
@@ -57,14 +56,13 @@ export default {
     margin-top: 10px;
   }
   .profile-about-left {
+    width: 100%;
     background-color: #fff;
-    padding: 0 10px;
-    margin-right: 10px;
-    width: 620px;
+    padding: 0 20px;
   }
-  .profile-about-right {
+  /* .profile-about-right {
     background-color: #fff;
     flex: 1;
     padding: 10px;
-  }
+  } */
 </style>

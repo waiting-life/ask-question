@@ -13,7 +13,9 @@ export default {
 }
 </script>
 
-<style>
+<style lang="stylus">
+mainColor = pink
+bgColor = #eee
 * {
   box-sizing: border-box;
 }
@@ -22,7 +24,7 @@ ul,h1,h2,h3,h4,button {
   margin: 0;
 }
 body {
-  background-color: #eee;
+  background-color: bgColor;
   font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,PingFang SC,Microsoft YaHei,Source Han Sans SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif;
   font-size: 15px;
   color: #121212;

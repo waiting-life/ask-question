@@ -11,10 +11,11 @@
         <div class="question-content" @click="readFullArticle">{{ item.content }}</div>
         <div class="question-info">         
           <div>
+            <!-- <img :src="item.avatarUrl" alt=""> -->
             <a @click="toClickedUserPage(item.userId)">{{ item.nickname }}</a>
-            <span>提问于：{{ new Date(item.createTime).toLocaleString() }}</span>
+            <span>提问于：{{ new Date(item.created_at).toLocaleString() }}</span>
           </div>
-          <div class="btns" v-if="item.nickname === nickname">
+          <div class="btns" v-if="item.nickname === userInfo.nickname">
             <el-button 
               type="danger" 
               size="small" 
@@ -36,14 +37,9 @@ export default {
       questionId: ''
     }
   },
-  computed: mapState({
-    nickname() {
-      return this.$store.state.userInfo.nickname
-    },
-    questionsInfo() {
-      return this.$store.state.questionsInfo
-    }
-  }),
+  computed: {
+    ...mapState(['userInfo', 'questionsInfo'])
+  },
   created() {
     this.getQuestions()
   },

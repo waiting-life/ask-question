@@ -5,10 +5,11 @@ const Login = () => import('views/Login')
 const Home = () => import('views/Home')
 // const Register = () => import('views/Register')
 const Profile = () => import('views/Profile')
-const Setting = () => import('views/Setting')
+// const Setting = () => import('views/Setting')
 const VipPage = () => import('views/mainPage/VipPage')
 const ExplorePage = () => import('views/mainPage/ExplorePage')
 const WaitingAnswerPage = () => import('views/mainPage/WaitingAnswerPage')
+const SearchContentPage = () => import('views/mainPage/SearchContentPage')
 //  Home 部分
 const HomeMessage = () => import('views/mainPage/HomeMessage')
 // profile部分
@@ -66,13 +67,18 @@ const routes = [
         name: 'waiting',
         component: WaitingAnswerPage
       },
+      {
+        path: 'search',
+        name: 'search',
+        component: SearchContentPage
+      }
     ]
   },
   {
     path: '/profile/:id',
     name: 'profile',
     component: Profile,
-    redirect: {name: 'dynamics'},
+    redirect: { name: 'dynamics' },
     children: [
       {
         path:'dynamics',
@@ -80,8 +86,8 @@ const routes = [
         component: ProfileDynamic
       },
       {
-        path:'answers',
-        name: 'answers',
+        path:'myanswers',
+        name: 'myanswers',
         component: ProfileAnswer
       },
       {
@@ -118,7 +124,7 @@ const routes = [
         path:'following',
         name: 'following',
         component: ProfileFollowing
-      },
+      }
     ]
   },
   {
@@ -137,11 +143,11 @@ const routes = [
     name: 'login',
     component: Login
   },
-  {
-    path: '/setting',
-    name: 'setting',
-    component: Setting
-  }
+  // {
+  //   path: '/setting',
+  //   name: 'setting',
+  //   component: Setting
+  // }
 ]
 const router = new VueRouter({
   routes,

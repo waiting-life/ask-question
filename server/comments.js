@@ -1,26 +1,31 @@
 const mongoose = require('mongoose')
-// 连接数据库
-mongoose.connect('mongodb://localhost/message', {useNewUrlParser: true, useUnifiedTopology: true});
-const Schema = mongoose.Schema
 
-const commentSchema = new Schema({
+const commentSchema = new mongoose.Schema({
   userId: {
     type: String,
   },
   answerId: {
     type: String
   },
-  comment_nickname: {
+  nickname: {
     type: String
   },
-  comment_content: {
+  content: {
     type: String,
     required: true
   },
-  comment_time: {
-    type: Date,
-    required: true,
-    default: Date.now
+  avatarUrl: {
+    type: String
+  }
+  // comment_time: {
+  //   type: Date,
+  //   required: true,
+  //   default: Date.now
+  // }
+}, {
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 })
 

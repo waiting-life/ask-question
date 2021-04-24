@@ -7,11 +7,17 @@ export default new Vuex.Store({
   state: {
     userInfo: {
       nickname: '',
-      user_id: ''
+      user_id: '',
+      password: '',
+      birthday: '',
+      gender: '',
+      signature: '',
+      avatarUrl: ''
     },
     askDialogVisible: false,
     questionsInfo: [],
-    currentTagIndex: 0
+    currentTagIndex: 0,
+    editBoxVisible: false
   },
   mutations: {
     showAskDialog(state) {
@@ -21,14 +27,20 @@ export default new Vuex.Store({
       state.askDialogVisible = false
     },
     getUserInfo(state, payload) {
-      state.userInfo.user_id = payload.user_id
+      state.userInfo.user_id = payload._id
       state.userInfo.nickname = payload.nickname
+      state.userInfo.signature = payload.signature
+      state.userInfo.avatarUrl = payload.avatarUrl
     },
     getQuestions(state, payload) {
       state.questionsInfo = payload
     },
     changeCurrentIndex(state, payload) {
       state.currentTagIndex = payload
+    },
+    updateUserInfo(state, payload) {
+      state.userInfo.nickname = payload.nickname
+      state.userInfo.signature = payload.signature
     }
   },
   actions: {

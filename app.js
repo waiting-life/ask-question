@@ -1,15 +1,22 @@
-const path = require('path')
 const Koa = require('koa')
 const router = require('koa-router')()
 const app = new Koa()
-const User = require('./server/user')
-const Question = require('./server/questions')
+const fs = require('fs')
 const Search = require('./server/search')
-const Answer = require('./server/answers')
-const Comment = require('./server/comments')
+const {
+  Question,
+  Answer,
+  Comment,
+  User,
+} = require('./server')
 const body = require('koa-body')
-const static = require('koa-static')
+const koaStatic = require('koa-static')
+const logger = require('koa-logger')
+
+app.use(logger())
 app.use(async (ctx, next)=> {
+  // console.log(ctx.req.url)
+  // console.log(111);
   // ctx.set('Access-Control-Allow-Origin', 'http://localhost:8080');
   // ctx.set('Access-Control-Allow-Credentials', true)
   // ctx.set('Access-Control-Allow-Headers', 'Origin, Content-Type, Credentials');
@@ -18,7 +25,8 @@ app.use(async (ctx, next)=> {
 });
 
 app.use(body({multipart: true}))
-app.use(static('dist'))
+app.use(koaStatic('image'))
+app.use(koaStatic('dist'))
 router
   .post('/register', async (ctx) => {
     // 获取表单提交的数据
@@ -84,6 +92,7 @@ router
     // })
   })
   .post('/login', async (ctx) => {
+    // console.log(222)
     const body = ctx.request.body
     // console.log(body)
     try {
@@ -136,11 +145,102 @@ router
       const data = await User.findById(user_id)
      if (data) {
         ctx.body = {
-        err_code: 0,
-        message: 'Ok',
-        data: data
-      }
+          err_code: 0,
+          message: 'Ok',
+          data: data
+        }
      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  // 编辑个人资料
+  .post('/editProfile', async ctx => {
+    const body = ctx.request.body
+    // console.log(body)
+    try {
+      const data = await User.updateOne({ _id: body._id}, {$set:  body})
+      ctx.body = {
+        data
+      }
+    } catch  {
+      ctx.body  = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  // 通过id获取动态
+  .post('/getDynamicsByUid', async ctx => {
+    const body = ctx.request.body
+    try {
+      let [ questions, answers ] = await Promise.all([
+        Question.find({ userId: body.id}),
+        Answer.find({ userId: body.id }),
+        // Comment.find({ userId: body.id })
+      ])
+      ctx.body = {
+        err_code: 0,
+        message: 'OK',
+        data: {
+          questions,
+          answers,
+          // comments
+        },
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  .post('/getQuestionsByUid', async ctx => {
+    const body = ctx.request.body
+    try {
+      const data = await Question.find({ userId: body.id})
+      ctx.body = {
+        err_code: 0,
+        message: 'OK',
+        data
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  .post('/getAnswersByUid', async ctx => {
+    const body = ctx.request.body
+    try {
+      const data = await Answer.find({ userId: body.id })
+      // console.log(data)
+      ctx.body = {
+        err_code: 0,
+        message: 'OK',
+        data
+      }
+    } catch {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  .post('/getCommentsByUid', async ctx => {
+    const body = ctx.request.body
+    try {
+      const data = await Comment.find({ userId: body.id })
+      // console.log(data)
+      ctx.body = {
+        err_code: 0,
+        message: 'OK',
+        data
+      }
     } catch {
       ctx.body = {
         err_code: 500,
@@ -167,6 +267,8 @@ router
   .get('/allQuestions', async ctx => {
     // 获取所有问题接口
     let data = await Question.find()
+    // let newData = JSON.parse(JSON.stringify(data))
+    
     ctx.body = {
       err_code: 0,
       message: 'Ok',
@@ -270,13 +372,12 @@ router
   .post('/getQuestionById', async ctx => {
     const body = ctx.request.body
     try {
-      const question_id = body.question_id
-      const data = await Question.findById(question_id)
+      const data = await Question.findById(body.question_id)
       if (data) {
         ctx.body = {
           err_code: 0,
           message: 'Ok',
-          data: data
+          data
         }
       }
     } catch {
@@ -290,6 +391,7 @@ router
   .post('/addAnswer', async ctx => {
     const body = ctx.request.body
     try {
+      // await Question.findById()
       await new Answer(body).save()
       ctx.body = {
         err_code: 0,
@@ -324,11 +426,26 @@ router
       }
     }
   })
-
+  .post('/deleteAnswer', async ctx => {
+    const { id } = ctx.request.body
+    try {
+      const data = await Answer.findById(id)
+      await Answer.remove(data)
+      ctx.body = {
+        err_code: 0,
+        message: '回答删除成功'
+      }
+    } catch {
+      ctx.body= {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
   // 评论接口部分
   .post('/addCommentByAid', async ctx => {
     const body = ctx.request.body
-    console.log(body)
+    // console.log(body)
     try {
       await new Comment(body).save()
       ctx.body = {
@@ -362,7 +479,69 @@ router
       }
     }
   })
+  .post('/deleteComment', async ctx => {
+    const { id } = ctx.request.body
+    try {
+      const data = await Comment.findById(id)
+      await Comment.remove(data)
+      ctx.body = {
+        err_code: 0,
+        message: '评论删除成功'
+      }
+    } catch {
+      ctx.body= {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
+  // 根据关键字筛选渲染搜索页面
+  .get('/search', async ctx => {
+    const { keywords } = ctx.request.query
+    const data = await Question.find({
+      $or: [
+        {
+          title: new RegExp(`${keywords}`, 'i')
+        },
+        {
+          content: new RegExp(`${keywords}`, 'i')
+        }
+      ]
+    })
+    console.log(keywords);
+    ctx.body = {
+      data
+    }
+  })
+  .post('/updateAvatar', async ctx => {
+    console.log(111)
+    const file = ctx.request.files.file
+    const reader = fs.createReadStream(file.path)
+    const random = Math.floor(Math.random() * 10000)
+    const stream = fs.createWriteStream(`./image/${random}.jpg`)
+    reader.pipe(stream)
+    const { user_id } = ctx.request.body
+    try {
+      const user = await User.findById(user_id)
+      user.avatarUrl = `/${random}.jpg`
+      await user.save()
+      ctx.body = {
+        err_code: 0,
+        message: 'OK',
+      }
+    } catch  {
+      ctx.body = {
+        err_code: 500,
+        message: 'Server error'
+      }
+    }
+  })
 app
   .use(router.routes())
   .use(router.allowedMethods())
+
+// history模式，需要写一个兜底路径
+app.use(async (ctx) => {
+  ctx.redirect('/')
+})
 app.listen(3000)

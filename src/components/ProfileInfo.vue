@@ -1,78 +1,127 @@
 <template>
-  <div class="profile-info">
-    <div class="user-bgimage">
-      <img src="~assets/image/defaultBg.jpg" alt="">
-    </div>
-    <div class="user-info">
-      <div class="user-detail">
-        <div class="user-avator">
-          <img src="~assets/image/lgAvator.jpg" alt="">
-        </div>
-        <div class="detail-main">
-          <div class="user-nickname">
-            <span>{{ profilePageNickname }}</span>
+  <div>
+    <div class="profile-info">
+      <div class="user-bgimage">
+        <img src="~assets/image/defaultBg.jpg" alt="">
+      </div>
+      <div class="user-info">
+        <div class="user-detail">
+          <div class="user-avator">
+            <el-upload
+              class="avatar-uploader"
+              action="/updateAvatar"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload"
+              :data="userInfo"
+              v-if="samePeople"
+              >
+              <img :src="userInfo.avatarUrl" class="avatar">
+              <div class="mask">修改我的头像</div>
+            </el-upload>
+            <img v-else :src="imageUrl" class="avatar">
           </div>
-          <div class="btns" v-show="!(profilePageNickname === userInfo.nickname)">
-            <el-button type="primary">
-              <i class="el-icon-plus"></i>
-              关注他
-            </el-button>
-            <el-button type="plain">
-              <i class="el-icon-chat-round"></i>
-              发私信
+          <div class="detail-main">
+            <div class="user">
+              <div v-if="samePeople">
+                <span class="user-nickname">{{ userInfo.nickname }}</span>
+                <p class="user-signature">{{ userInfo.signature }}</p>
+              </div>
+              <span v-else>
+                <span class="user-nickname">{{ profilePageNickname }}</span>
+                <p class="user-signature">{{ signature }}</p>
+              </span>
+              
+            </div>      
+            <div class="btns" v-if="!samePeople">
+              <el-button type="primary">
+                <i class="el-icon-plus"></i>
+                关注他
+              </el-button>
+              <el-button type="plain">
+                <i class="el-icon-chat-round"></i>
+                发私信
+              </el-button>
+            </div>
+            <el-button type="primary" 
+              @click="showEditBox" 
+              class="btns" 
+              v-if="samePeople">
+              <i class="el-icon-edit"></i>
+              编辑资料
             </el-button>
           </div>
         </div>
       </div>
     </div>
+    <edit-profile v-if="editBoxVisible" class="edit-profile" @cancelEdit="cancelEdit"/>
   </div>
 </template>
 <script>
 import { mapState } from 'vuex'
+import EditProfile from 'components/edit/EditProfile.vue'
 export default {
+  components: {
+    EditProfile
+  },
   data() {
     return {
+      editBoxVisible: false,
       profilePageNickname: '',
-      id: ''
+      signature: '',
+      user_id: '',
+      imageUrl: ''
     }
   },
-  // watch: {
-  //   $route(to, from) {
-  //     console.log(to, from)
-  //     this.id = to.params.id
-  //     this.getUserById()
-  //     // next()
-  //   }
-  // },
-  // beforeRouteUpdate (to, from, next) {
-  //   console.log(to, from)
-  //   this.id = to.params.id
-  //   this.getUserById()
-  //   next()
-  // },
-  computed: mapState(['userInfo']),
+  computed: {
+    ...mapState(['userInfo']),
+    samePeople() {
+      return this.userInfo.user_id === this.user_id
+    }
+  },
   created() {
     this.getUserById()
   },
   methods: {
     async getUserById() {
-      // const user_id = this.$route.params.id
-      // console.log(user_id)
-      this.id = this.$route.params.id
-      // console.log(this.id)
-      const res = await fetch('/getUserById', {
+      this.user_id = this.$route.params.id
+      const { data } = await fetch('/getUserById', {
         method: 'POST',
         body: JSON.stringify({
-          user_id: this.id
+          user_id: this.user_id
         }),
         headers: {
           'Content-Type': 'application/json; charset=utf-8'
         }
-      })
-      const { data } = await res.json()
-      // console.log(data)
+      }).then(res => res.json())
       this.profilePageNickname = data.nickname
-    } 
+      this.signature = data.signature
+      this.imageUrl = data.avatarUrl
+    },
+
+    showEditBox() {
+      this.editBoxVisible = true
+    },
+    cancelEdit() {
+      this.editBoxVisible = false
+    },
+    handleAvatarSuccess(res, file) {
+      console.log(res, file)
+      this.imageUrl = URL.createObjectURL(file.raw);
+      console.log(this.imageUrl)
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg';
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!');
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+      return isJPG && isLt2M;
+    },
   }
 }
 </script>
@@ -108,10 +157,34 @@ export default {
   bottom: 0px; 
 }
 .user-avator img {
+  position: absolute;
+  left: 4px;
+  top: 4px;
   width: 160px;
   height: 160px;
 }
-
+.mask {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 160px;
+  height: 160px;
+  z-index: 2;
+  opacity: 0;
+  background-color: rgba(0, 0, 0, .3);
+  color: #ddd;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all .5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* pointer-events: none; */
+}
+.user-avator:hover .mask {
+  opacity: 1;
+}
 .user-detail {
   display: flex;
   margin-left: 180px;
@@ -130,4 +203,35 @@ export default {
   right: 20px;
   bottom: 0;
 }
+
+.edit-profile {
+  padding: 0 20px 10px 0;
+}
+
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409EFF;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 160px;
+  height: 160px;
+  line-height: 160px;
+  text-align: center;
+}
+.avatar {
+  width: 160px;
+  height: 160px;
+  display: block;
+}
+
+
+
 </style>

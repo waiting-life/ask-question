@@ -1,9 +1,6 @@
 const mongoose = require('mongoose')
-// 连接数据库
-mongoose.connect('mongodb://localhost/message', {useNewUrlParser: true, useUnifiedTopology: true});
-const Schema = mongoose.Schema
 
-const questionSchema = new Schema({
+const questionSchema = new mongoose.Schema({
   userId: {
     type: String,
   },
@@ -19,10 +16,18 @@ const questionSchema = new Schema({
     type: String,
     required: true
   },
-  createTime: {
-    type: Date,
-    required: true,
-    default: Date.now
+  avatarUrl: {
+   type: String
+ },
+  // createTime: {
+  //   type: Date,
+  //   required: true,
+  //   default: Date.now
+  // }
+}, {
+  timestamps: {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 })
 

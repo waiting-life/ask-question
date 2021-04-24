@@ -14,14 +14,20 @@
           <div class="CommentInfo">
             <div class="CommentatorInfo">
               <a href="#" class="Commentator-avatar" @click="toClickedUserPage(answer.userId)">
-              <img src="~assets/image/唯.jpg" alt="">
+              <img :src="comment.avatarUrl" alt="">
             </a>
-            <span @click="toClickedUserPage(answer.userId)" class="Commentator-nickname">{{ comment.comment_nickname}}</span>
+            <span @click="toClickedUserPage(answer.userId)" class="Commentator-nickname">{{ comment.nickname}}</span>
             </div>
-            <span class="comment-time">{{ new Date(comment.comment_time).toLocaleString() }}</span>
+            <span class="comment-time">{{ new Date(comment.created_at).toLocaleString() }}</span>
+            <el-button @click="deleteComment(comment)" 
+              v-if="comment.userId === userInfo.user_id" 
+              size="small"
+              type="danger">
+              删除评论
+            </el-button>
           </div>
           <div class="comment-content">
-            <p>{{ comment.comment_content }}</p>
+            <p>{{ comment.content }}</p>
           </div>
         </div>
       </div>
@@ -34,7 +40,7 @@
         <el-input
           type="textarea"
           placeholder="写下你的评论"
-          v-model="commentInfo.comment_content"
+          v-model="commentInfo.content"
           class="commment-input">
         </el-input>
       </el-form-item>
@@ -66,10 +72,11 @@ export default {
     return {
       isCommentBoxVisible: false,
       commentInfo: {
-        comment_content: '',
-        comment_nickname: '',
+        content: '',
+        nickname: '',
         answerId: '',
-        userId: ''
+        userId: '',
+        avatarUrl: ''
       },
       comments: [],
       comments_counts: 0,
@@ -105,8 +112,12 @@ export default {
     },
     async submitComment(commentInfo, answerId) {
       commentInfo.answerId = answerId
-      commentInfo.comment_nickname = this.userInfo.nickname
+      commentInfo.nickname = this.userInfo.nickname
       commentInfo.userId = this.userInfo.user_id
+      commentInfo.avatarUrl = this.userInfo.avatarUrl
+      if(commentInfo.content === '') {
+        return false
+      }
        try {
         const res = await fetch('/addCommentByAid', {
           method: 'POST',
@@ -118,7 +129,7 @@ export default {
         await res.json()
         this.$message.success("评论发布成功")
         this.getCommentsByAid(answerId)
-        this.commentInfo.comment_content = ''
+        this.commentInfo.content = ''
       } catch {
         this.$message.error('评论失败');
       }
@@ -135,6 +146,34 @@ export default {
       this.$router.push({
         path: `/profile/${data._id}/dynamics`
       })
+    },
+    async deleteComment(comment) {
+      try {
+        await this.$confirm('是否要删除评论?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        const res = await fetch('/deleteComment', {
+          method: 'POST',
+          body: JSON.stringify({ id: comment._id }),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          }
+        })
+        const result = res.json()
+        const code = result.err_code
+        if (code === 0) {
+          this.$message.success('删除成功')
+        }
+        this.getCommentsByAid()
+        this.$message.success('删除成功')
+      } catch {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      }
     }
   }
 }
